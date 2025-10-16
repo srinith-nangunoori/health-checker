@@ -4,11 +4,11 @@ A project for HackVortex's Codestorm 5 by Srinith Nangunoori.
 
 ## Project Description
 
-This tool is a health and wellness application designed to help users better understand their physical symptoms. Instead of searching with confusing medical jargon, users are guided through an intuitive, multi-step "symptom funnel." They can select a body part, narrow it down to a specific area, and choose a symptom, adding multiple issues to a list. This compiled list is then sent to a secure backend that uses the Google Gemini API to provide a concise, structured, and preliminary analysis of potential causes and recommended next steps.
+This tool is a health and wellness application designed to help users better understand their physical symptoms. Instead of relying on ambiguous search queries, users are guided through an intuitive, multi-step "symptom funnel" to pinpoint their specific issues. This structured data is then sent to a secure backend powered by the Google Gemini API, which provides a concise, structured, and preliminary analysis.
 
-The project's design philosophy is heavily inspired by Apple's clean, elegant, and user-centric aesthetic, ensuring a calming and trustworthy user experience.
+The project's design philosophy prioritizes a clean, minimalist, and user-centric aesthetic. Generous spacing, a calming color palette, and clear typography are used intentionally to create a trustworthy and non-intimidating user experience, which is crucial when dealing with health-related concerns.
 
-**Innovation**: The key innovation is the guided selection process, which translates a user's physical discomfort into a structured data format that an AI can analyze effectively. This, combined with advanced prompt engineering, removes the barrier of medical vocabulary and delivers clear, actionable information.
+**INNOVATION**: The key innovation is the guided selection process, which translates a user's physical discomfort into a structured data format that an AI can analyze effectively. This, combined with advanced prompt engineering and a resilient multi-model backend, removes the barrier of medical vocabulary and delivers clear, actionable, and reliable information. The addition of a symptom search bar, definition tooltips, and a "copy results" feature further enhances the user's comfort and the tool's utility.
 
 ## Technology Stack
 
@@ -16,7 +16,7 @@ The project's design philosophy is heavily inspired by Apple's clean, elegant, a
     
 *   **Backend**: Node.js with Express
     
-*   **AI Service**: Google Gemini API
+*   **AI Service**:Google Gemini API (with a multi-model fallback system)
     
 *   **Version Control**: Git & GitHub
     

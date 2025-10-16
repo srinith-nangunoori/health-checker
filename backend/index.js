@@ -1,34 +1,34 @@
+// backend/index.js
 
 require('dotenv').config();
-
-// 1. Import necessary packages
 const express = require('express');
 const cors = require('cors');
-// Google Generative AI package
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-//Initialize the Google client with our API key
+// Initialize the Google client with our API key
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
 
-// 2. Create an Express application
+// NEW: Define our model names in variables for easy access
+const PRO_MODEL_NAME = "gemini-2.5-pro";
+const FLASH_MODEL_NAME = "gemini-2.5-flash";
+
 const app = express();
 const PORT = 3001;
 
-// 3. Set up middleware
 app.use(cors());
 app.use(express.json());
 
-// 4. Define a basic test route
-app.get('/', (req, res) => {
-  res.send('Hello from the Symptom Checker Backend!');
-});
+// NEW: Create a reusable function to call the AI model
+const callGenerativeModel = async (modelName, prompt) => {
+  const model = genAI.getGenerativeModel({ model: modelName });
+  const result = await model.generateContent(prompt);
+  const response = await result.response;
+  return response.text();
+};
 
-// 5. THIS IS THE MOST IMPORTANT PART: AI-Powered API Endpoint
 app.post('/api/analyze', async (req, res) => {
   try {
     const { symptoms } = req.body;
-    console.log('Received symptoms on the backend:', symptoms);
 
     if (!symptoms || symptoms.length === 0) {
       return res.status(400).json({ error: 'No symptoms provided.' });
@@ -44,36 +44,54 @@ app.post('/api/analyze', async (req, res) => {
     - **[Potential Cause 2]:** [Short, direct explanation using minimal words.]
     - **[Potential Cause 3]:** [Short, direct explanation using minimal words.]
 
+    ### Safe Comfort Measures
+    *Important: These are for temporary relief and are not a substitute for medical treatment. Follow these suggestions only if they feel appropriate for your situation.*
+    - **[Suggestion 1]:** [Provide a safe, universally applicable comfort measure. For a headache, this could be "Apply a cool, damp cloth to your forehead for 15 minutes." For a stomach ache, "Try sipping clear fluids like water or broth." Be very specific and safe.]
+    - **[Suggestion 2]:** [Provide another safe comfort measure with instructions.]
+
     ### Recommended Next Steps
-    - **General Care:** [List 2-3 safe, one-line actions like "Monitor symptoms", "Ensure proper rest", "Stay hydrated".]
+    - **General Monitoring:** [List 2 safe, one-line actions like "Keep a log of your symptoms", "Ensure you are getting adequate rest", "Stay hydrated".]
     - **Professional Consultation:** When to see a doctor. List specific "red flag" symptoms.
-        - See a doctor if: [Red flag symptom 1].
-        - See a doctor if: [Red flag symptom 2].
-        - See a doctor if: [Red flag symptom 3].
+      - See a doctor immediately if: [Critical red flag symptom 1].
+      - See a doctor if: [Serious red flag symptom 2].
+      - See a doctor if: [Worsening red flag symptom 3].
 
-    ---
-    **Disclaimer:** This is an AI-generated analysis for informational purposes and is not a substitute for professional medical advice. Consult a healthcare professional for any health concerns.
+    **Disclaimer:** This is an AI-generated analysis for informational purposes and is not a substitute for professional medical advice. Consult a qualified healthcare professional for any health concerns.
 
-    ---
     **Symptoms Provided:**
     ${symptoms.map(s => `- **${s.symptom}** (*${s.part} -> ${s.subPart}*): "${s.description || 'N/A'}"`).join('\n')}
-    `;
 
-    // Call the Google Gemini API
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const analysisResult = response.text();
+    Begin the response now with the 'Possible Causes' heading.
+  `;
 
-    // Send the AI's response back to the frontend
+    // NEW: Multi-model fallback logic
+    let analysisResult;
+    try {
+      console.log(`Attempting to call primary model: ${PRO_MODEL_NAME}`);
+      analysisResult = await callGenerativeModel(PRO_MODEL_NAME, prompt);
+    } catch (primaryError) {
+      console.warn(`Primary model (${PRO_MODEL_NAME}) failed. Error:`, primaryError.message);
+      console.log(`Falling back to secondary model: ${FLASH_MODEL_NAME}`);
+      
+      // If the primary model fails, try the fallback model
+      try {
+        analysisResult = await callGenerativeModel(FLASH_MODEL_NAME, prompt);
+      } catch (fallbackError) {
+        console.error(`Fallback model (${FLASH_MODEL_NAME}) also failed. Error:`, fallbackError.message);
+        // If both models fail, throw an error to be caught by the outer block
+        throw new Error('Both AI models failed to respond.');
+      }
+    }
+    
     res.json({ analysis: analysisResult });
 
   } catch (error) {
-    console.error('Error calling Google AI API:', error);
+    // This outer catch block now handles the final failure state
+    console.error('Error during analysis process:', error);
     res.status(500).json({ error: 'Failed to analyze symptoms. Please try again later.' });
   }
 });
 
-// 6. Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
