@@ -4,11 +4,11 @@ A project for HackVortex's Codestorm 5 by Srinith Nangunoori.
 
 ## Project Description
 
-This tool is a health and wellness application designed to help users better understand their physical symptoms. Instead of relying on ambiguous search queries, users are guided through an intuitive, multi-step "symptom funnel" to pinpoint their specific issues. This structured data is then sent to a secure backend powered by the Google Gemini API, which provides a concise, structured, and preliminary analysis.
+Synapse Health is an educational wellness tool designed to promote health literacy and reduce anxiety around physical symptoms. In a world of confusing and often stressful online health searches, this application provides a calm, guided, and interactive journey.
 
-The project's design philosophy prioritizes a clean, minimalist, and user-centric aesthetic. Generous spacing, a calming color palette, and clear typography are used intentionally to create a trustworthy and non-intimidating user experience, which is crucial when dealing with health-related concerns.
+Users are guided through an intuitive "symptom funnel" to pinpoint their specific issues, demystifying medical vocabulary with on-hover definitions. This structured data is then sent to a secure, resilient AI backend, which provides a preliminary analysis of potential causes and safe, actionable next steps.
 
-**INNOVATION**: The key innovation is the guided selection process, which translates a user's physical discomfort into a structured data format that an AI can analyze effectively. This, combined with advanced prompt engineering and a resilient multi-model backend, removes the barrier of medical vocabulary and delivers clear, actionable, and reliable information. The addition of a symptom search bar, definition tooltips, and a "copy results" feature further enhances the user's comfort and the tool's utility.
+The core mission is to empower users with clear, structured information, fostering a better understanding of their own bodies and enabling more confident, informed conversations with healthcare professionals. This directly promotes both physical and mental well-being by replacing uncertainty with knowledge.
 
 ## Technology Stack
 
@@ -74,4 +74,16 @@ A new browser tab will automatically open with the application running at [http:
 
 ## Developer Information
 
-*   **Srinith Nangunoori**: I am a passionate second-year CSE student at SVNIT. As the sole developer for this project, I was responsible for the entire creation process: designing and building the React frontend, developing the Node.js backend server, integrating the Google Gemini API, and performing advanced prompt engineering to ensure a high-quality user experience.
+-   **SRINITH NANGUNOORI: B.Tech Student, Computer Science Engineering | Expected Graduation: 2028**
+    
+    Sardar Vallabhbhai National Institute of Technology (SVNIT), an Institution of National Importance in India.
+    
+    As the sole architect and developer for this project, my responsibilities included:
+    
+    -   Architecting the full-stack application with a React frontend and Node.js backend.
+        
+    -   Designing a clean, intuitive, and user-centric interface.
+        
+    -   Engineering a resilient, multi-model AI backend using the Google Gemini API.
+        
+    -   Developing the project's core innovation: a complex, two-stage interactive AI consultation flow.

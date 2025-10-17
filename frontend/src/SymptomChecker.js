@@ -21,12 +21,6 @@ function Tooltip({ text, visible, position }) {
   );
 }
 
-// Mock API function
-const analyzeSymptoms = async (symptoms) => {
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  return `Based on your reported symptoms of ${symptoms.map(s => s.symptom).join(', ')}, this analysis suggests you may benefit from consulting a healthcare professional. Please note this is not a medical diagnosis—always seek professional medical advice for proper evaluation and treatment.`;
-};
-
 // Main Component
 export default function SymptomChecker() {
   const [currentPath, setCurrentPath] = useState({ part: null, subPart: null, symptom: null });
@@ -37,6 +31,18 @@ export default function SymptomChecker() {
   const [searchTerm, setSearchTerm] = useState('');
   const [tooltip, setTooltip] = useState({ visible: false, text: '', position: { x: 0, y: 0 } });
   const [copyStatus, setCopyStatus] = useState(false);
+  const [healthInfo, setHealthInfo] = useState({
+    age: '',
+    sex: 'Prefer not to say',
+    weight: '',
+    height: '',
+    conditions: ''
+  });
+  
+  // Two-stage analysis states
+  const [questions, setQuestions] = useState([]);
+  const [answers, setAnswers] = useState({});
+  const [analysisStage, setAnalysisStage] = useState('initial');
 
   // Filter logic based on search term
   const filteredData = useMemo(() => {
@@ -110,7 +116,7 @@ export default function SymptomChecker() {
       setAddedSymptoms([...addedSymptoms, newSymptom]);
       setCurrentPath({ part: null, subPart: null, symptom: null });
       setDescription('');
-      setSearchTerm(''); // Clear search after adding
+      setSearchTerm('');
     }
   };
 
@@ -144,9 +150,17 @@ export default function SymptomChecker() {
     }
   };
 
+  const handleHealthInfoChange = (field, value) => {
+    setHealthInfo(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Initial analysis with two-stage support
   const handleAnalyze = async () => {
     setIsLoading(true);
     setResults(null);
+    setQuestions([]);
+    setAnswers({});
+    setAnalysisStage('initial');
 
     try {
       const response = await fetch('http://localhost:3001/api/analyze', {
@@ -154,7 +168,7 @@ export default function SymptomChecker() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ symptoms: addedSymptoms }),
+        body: JSON.stringify({ symptoms: addedSymptoms, healthInfo }),
       });
 
       if (!response.ok) {
@@ -162,14 +176,60 @@ export default function SymptomChecker() {
       }
 
       const data = await response.json();
-      setResults(data.analysis);
+      setResults(data.initialAnalysis);
+      setQuestions(data.followUpQuestions || []);
+      setAnalysisStage('questions');
     } catch (error) {
       console.error('Failed to fetch analysis:', error);
       setResults('Sorry, we were unable to process your request at this time. Please try again later.');
+      setAnalysisStage('final');
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Final analysis handler
+  const handleFinalAnalysis = async () => {
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:3001/api/final-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          symptoms: addedSymptoms, 
+          healthInfo,
+          answers 
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Something went wrong with the final analysis.');
+      }
+
+      const data = await response.json();
+      setResults(data.finalAnalysis);
+      setAnalysisStage('final');
+    } catch (error) {
+      console.error('Failed to fetch final analysis:', error);
+      setResults('Sorry, we were unable to process your final analysis at this time. Please try again later.');
+      setAnalysisStage('final');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle answer changes
+  const handleAnswerChange = (question, value) => {
+    setAnswers(prev => ({ ...prev, [question]: value }));
+  };
+
+  //  Validation check
+  const allQuestionsAnswered = questions.length > 0 && questions.every(q => 
+    answers.hasOwnProperty(q.question) && answers[q.question] !== '' && answers[q.question] !== null
+  );
 
   const canAddSymptom = currentPath.part && currentPath.subPart && currentPath.symptom && description.trim();
 
@@ -287,6 +347,83 @@ export default function SymptomChecker() {
             </div>
           )}
 
+          {/* General Health Information */}
+          {!isLoading && (
+            <div className="sc-health-info">
+              <h3>General Health Information</h3>
+              <p className="sc-health-info-subtitle">Optional: Provide additional context for a more personalized analysis</p>
+              
+              <div className="sc-health-form">
+                <div className="sc-form-field">
+                  <label className="sc-form-label">Age</label>
+                  <input
+                    type="number"
+                    className="sc-form-input"
+                    placeholder="Enter your age"
+                    value={healthInfo.age}
+                    onChange={(e) => handleHealthInfoChange('age', e.target.value)}
+                    min="0"
+                    max="150"
+                  />
+                </div>
+
+                <div className="sc-form-field">
+                  <label className="sc-form-label">Biological Sex</label>
+                  <select
+                    className="sc-form-select"
+                    value={healthInfo.sex}
+                    onChange={(e) => handleHealthInfoChange('sex', e.target.value)}
+                  >
+                    <option value="Prefer not to say">Prefer not to say</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                </div>
+
+                <div className="sc-form-field">
+                  <label className="sc-form-label">Weight</label>
+                  <div className="sc-input-with-unit">
+                    <input
+                      type="number"
+                      className="sc-form-input"
+                      placeholder="Enter weight"
+                      value={healthInfo.weight}
+                      onChange={(e) => handleHealthInfoChange('weight', e.target.value)}
+                      min="0"
+                    />
+                    <span className="sc-unit-label">in kg</span>
+                  </div>
+                </div>
+
+                <div className="sc-form-field">
+                  <label className="sc-form-label">Height</label>
+                  <div className="sc-input-with-unit">
+                    <input
+                      type="number"
+                      className="sc-form-input"
+                      placeholder="Enter height"
+                      value={healthInfo.height}
+                      onChange={(e) => handleHealthInfoChange('height', e.target.value)}
+                      min="0"
+                    />
+                    <span className="sc-unit-label">in cm</span>
+                  </div>
+                </div>
+
+                <div className="sc-form-field full-width">
+                  <label className="sc-form-label">Known Conditions</label>
+                  <input
+                    type="text"
+                    className="sc-form-input"
+                    placeholder="e.g., Diabetes, High Blood Pressure, Asthma"
+                    value={healthInfo.conditions}
+                    onChange={(e) => handleHealthInfoChange('conditions', e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Added Symptoms List */}
           {addedSymptoms.length > 0 && (
             <div className="sc-symptoms-list">
@@ -338,26 +475,104 @@ export default function SymptomChecker() {
             <div className="sc-results-text">
               <ReactMarkdown>{results}</ReactMarkdown>
             </div>
-            <div className="sc-results-actions">
-              <button
-                className="sc-btn sc-btn-secondary"
-                onClick={handleCopyResults}
-              >
-                {copyStatus ? 'Copied!' : 'Copy Results'}
-              </button>
-              <button
-                className="sc-btn sc-btn-primary"
-                onClick={() => {
-                  setResults(null);
-                  setAddedSymptoms([]);
-                  setCurrentPath({ part: null, subPart: null, symptom: null });
-                  setDescription('');
-                  setSearchTerm('');
-                }}
-              >
-                Start Over
-              </button>
-            </div>
+
+            {/* Follow-up Questions Section */}
+            {analysisStage === 'questions' && questions.length > 0 && (
+              <div className="sc-questions-section">
+                <h3 className="sc-questions-title">A Few More Questions...</h3>
+                <p className="sc-questions-subtitle">Help us refine your analysis with these additional details</p>
+                
+                <div className="sc-questions-container">
+                  {questions.map((q, index) => (
+                    <div key={index} className="sc-question-card">
+                      <label className="sc-question-label">{q.question}</label>
+                      
+                      {q.type === 'yes_no' && (
+                        <div className="sc-question-buttons">
+                          <button
+                            className={`sc-option-btn ${answers[q.question] === 'Yes' ? 'active' : ''}`}
+                            onClick={() => handleAnswerChange(q.question, 'Yes')}
+                          >
+                            Yes
+                          </button>
+                          <button
+                            className={`sc-option-btn ${answers[q.question] === 'No' ? 'active' : ''}`}
+                            onClick={() => handleAnswerChange(q.question, 'No')}
+                          >
+                            No
+                          </button>
+                        </div>
+                      )}
+
+                      {q.type === 'scale_1_10' && (
+                        <div className="sc-question-slider">
+                          <input
+                            type="range"
+                            min="1"
+                            max="10"
+                            value={answers[q.question] || 5}
+                            onChange={(e) => handleAnswerChange(q.question, parseInt(e.target.value))}
+                            className="sc-slider"
+                          />
+                          <div className="sc-slider-value">
+                            {answers[q.question] || 5}
+                          </div>
+                          <div className="sc-slider-labels">
+                            <span>1</span>
+                            <span>10</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {q.type === 'text' && (
+                        <textarea
+                          className="sc-question-textarea"
+                          placeholder="Type your answer here..."
+                          value={answers[q.question] || ''}
+                          onChange={(e) => handleAnswerChange(q.question, e.target.value)}
+                          rows="3"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  className={`sc-btn sc-btn-primary sc-btn-submit-final ${!allQuestionsAnswered || isLoading ? 'disabled' : ''}`}
+                  onClick={handleFinalAnalysis}
+                  disabled={!allQuestionsAnswered || isLoading}
+                >
+                  {isLoading ? 'Analyzing...' : 'Submit for Final Analysis'}
+                </button>
+              </div>
+            )}
+
+            {/* Results Actions (only show when in final stage) */}
+            {analysisStage === 'final' && (
+              <div className="sc-results-actions">
+                <button
+                  className="sc-btn sc-btn-secondary"
+                  onClick={handleCopyResults}
+                >
+                  {copyStatus ? 'Copied!' : 'Copy Results'}
+                </button>
+                <button
+                  className="sc-btn sc-btn-primary"
+                  onClick={() => {
+                    setResults(null);
+                    setAddedSymptoms([]);
+                    setCurrentPath({ part: null, subPart: null, symptom: null });
+                    setDescription('');
+                    setSearchTerm('');
+                    setQuestions([]);
+                    setAnswers({});
+                    setAnalysisStage('initial');
+                  }}
+                >
+                  Start Over
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

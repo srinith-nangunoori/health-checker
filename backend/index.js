@@ -1,14 +1,11 @@
-// backend/index.js
+// backend/index.js (FINAL VERSION)
 
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-// Initialize the Google client with our API key
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-
-// NEW: Define our model names in variables for easy access
 const PRO_MODEL_NAME = "gemini-2.5-pro";
 const FLASH_MODEL_NAME = "gemini-2.5-flash";
 
@@ -18,7 +15,6 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 
-// NEW: Create a reusable function to call the AI model
 const callGenerativeModel = async (modelName, prompt) => {
   const model = genAI.getGenerativeModel({ model: modelName });
   const result = await model.generateContent(prompt);
@@ -26,71 +22,127 @@ const callGenerativeModel = async (modelName, prompt) => {
   return response.text();
 };
 
+// Endpoint for the FIRST analysis (returns JSON with questions)
 app.post('/api/analyze', async (req, res) => {
   try {
-    const { symptoms } = req.body;
-
+    const { symptoms, healthInfo } = req.body;
     if (!symptoms || symptoms.length === 0) {
       return res.status(400).json({ error: 'No symptoms provided.' });
     }
-
     const prompt = `
-    Act as a direct and concise health information tool. Your entire response MUST be in Markdown and use ONLY headings and bullet points. Do NOT use any conversational paragraphs or introductory sentences. The disclaimer is the only exception.
-
-    Follow this template exactly:
-
-    ### Possible Causes
-    - **[Potential Cause 1]:** [Short, direct explanation using minimal words.]
-    - **[Potential Cause 2]:** [Short, direct explanation using minimal words.]
-    - **[Potential Cause 3]:** [Short, direct explanation using minimal words.]
-
-    ### Safe Comfort Measures
-    *Important: These are for temporary relief and are not a substitute for medical treatment. Follow these suggestions only if they feel appropriate for your situation.*
-    - **[Suggestion 1]:** [Provide a safe, universally applicable comfort measure. For a headache, this could be "Apply a cool, damp cloth to your forehead for 15 minutes." For a stomach ache, "Try sipping clear fluids like water or broth." Be very specific and safe.]
-    - **[Suggestion 2]:** [Provide another safe comfort measure with instructions.]
-
-    ### Recommended Next Steps
-    - **General Monitoring:** [List 2 safe, one-line actions like "Keep a log of your symptoms", "Ensure you are getting adequate rest", "Stay hydrated".]
-    - **Professional Consultation:** When to see a doctor. List specific "red flag" symptoms.
-      - See a doctor immediately if: [Critical red flag symptom 1].
-      - See a doctor if: [Serious red flag symptom 2].
-      - See a doctor if: [Worsening red flag symptom 3].
-
-    **Disclaimer:** This is an AI-generated analysis for informational purposes and is not a substitute for professional medical advice. Consult a qualified healthcare professional for any health concerns.
-
-    **Symptoms Provided:**
-    ${symptoms.map(s => `- **${s.symptom}** (*${s.part} -> ${s.subPart}*): "${s.description || 'N/A'}"`).join('\n')}
-
-    Begin the response now with the 'Possible Causes' heading.
-  `;
-
-    // NEW: Multi-model fallback logic
-    let analysisResult;
-    try {
-      console.log(`Attempting to call primary model: ${PRO_MODEL_NAME}`);
-      analysisResult = await callGenerativeModel(PRO_MODEL_NAME, prompt);
-    } catch (primaryError) {
-      console.warn(`Primary model (${PRO_MODEL_NAME}) failed. Error:`, primaryError.message);
-      console.log(`Falling back to secondary model: ${FLASH_MODEL_NAME}`);
-      
-      // If the primary model fails, try the fallback model
-      try {
-        analysisResult = await callGenerativeModel(FLASH_MODEL_NAME, prompt);
-      } catch (fallbackError) {
-        console.error(`Fallback model (${FLASH_MODEL_NAME}) also failed. Error:`, fallbackError.message);
-        // If both models fail, throw an error to be caught by the outer block
-        throw new Error('Both AI models failed to respond.');
-      }
-    }
-    
-    res.json({ analysis: analysisResult });
-
+      You are a sophisticated medical analysis AI. Your task is to perform two actions based on the user's symptoms and health profile:
+      1. Generate a preliminary analysis in Markdown.
+      2. Generate a list of 3-4 relevant follow-up questions to gather more specific information.
+      You MUST return your entire response as a single, valid JSON object.
+      The JSON object must have this exact structure: { "initialAnalysis": "...", "followUpQuestions": [ { "question": "...", "type": "..." } ] }
+      - For "initialAnalysis", use the Markdown template provided below.
+      - For "followUpQuestions", the "type" can be one of three strings: "yes_no", "scale_1_10", or "text".
+      ---
+      MARKDOWN TEMPLATE FOR "initialAnalysis":
+      ### Possible Causes
+      - **[Cause 1]:** [Brief explanation]
+      ### Safe Comfort Measures
+      - **[Suggestion 1]:** [Specific, safe instruction]
+      ### Recommended Next Steps
+      - **General Monitoring:**
+        - [One-line monitoring action]
+      - **Professional Consultation:**
+        - See a doctor immediately if: [Critical symptom]
+      **Disclaimer:** This is an AI-generated analysis...
+      ---
+      USER DATA:
+      Symptoms:
+      ${symptoms.map(s => `- ${s.symptom} (${s.part} -> ${s.subPart}): "${s.description || 'N/A'}"`).join('\n')}
+      Health Profile:
+      - Age: ${healthInfo.age || 'Not provided'}
+      - Biological Sex: ${healthInfo.sex || 'Not provided'}
+      - Known Conditions: ${healthInfo.conditions || 'None'}
+      Begin generating the JSON object now.
+    `;
+    let rawResponse = await callGenerativeModel(PRO_MODEL_NAME, prompt).catch(err => {
+        console.warn(`Primary model failed. Falling back to secondary model.`);
+        return callGenerativeModel(FLASH_MODEL_NAME, prompt);
+    });
+    const cleanedResponse = rawResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+    const responseObject = JSON.parse(cleanedResponse);
+    res.json(responseObject);
   } catch (error) {
-    // This outer catch block now handles the final failure state
-    console.error('Error during analysis process:', error);
-    res.status(500).json({ error: 'Failed to analyze symptoms. Please try again later.' });
+    console.error('Error during initial analysis:', error);
+    res.status(500).json({ error: 'Failed to analyze symptoms.' });
   }
 });
+
+//  Endpoint for the FINAL analysis (receives answers, returns final Markdown)
+app.post('/api/final-analysis', async (req, res) => {
+  try {
+    const { symptoms, healthInfo, answers } = req.body;
+
+    // Convert the answers object into a readable string
+    const answersString = Object.entries(answers)
+      .map(([question, answer]) => `- Q: ${question}\n  - A: ${answer}`)
+      .join('\n');
+
+    const finalPrompt = `
+      You are a medical analysis AI. You have already provided a preliminary analysis and asked the user follow-up questions. They have now responded.
+      Your task is to provide a single, final, more detailed and refined analysis by synthesizing ALL available information.
+
+      You MUST follow the Markdown template below exactly. Your analysis should be more refined and specific based on the user's answers.
+
+      ---
+      MARKDOWN TEMPLATE FOR FINAL ANALYSIS:
+
+      ### Possible Causes
+      - **[Cause 1]:** [Provide a more refined or confirmed brief explanation based on the new answers.]
+      - **[Cause 2]:** [Provide another refined explanation.]
+      - **[Cause 3]:** [Provide a third refined explanation.]
+
+      ### Safe Comfort Measures
+      - **[Suggestion 1]:** [Specific, safe instruction.]
+      - **[Suggestion 2]:** [Specific, safe instruction.]
+
+      ### Recommended Next Steps
+      - **General Monitoring:**
+        - [A refined one-line monitoring action.]
+      - **Professional Consultation:**
+        - See a doctor immediately if: [Critical symptom.]
+        - See a doctor if: [Serious symptom.]
+
+      **Disclaimer:** This is an AI-generated analysis for informational purposes and is not a substitute for professional medical advice. Consult a qualified healthcare professional for any health concerns.
+      ---
+
+      ALL USER DATA FOR FINAL ANALYSIS:
+      
+      Original Symptoms:
+      ${symptoms.map(s => `- ${s.symptom} (${s.part} -> ${s.subPart}): "${s.description || 'N/A'}"`).join('\n')}
+
+      Health Profile:
+      - Age: ${healthInfo.age || 'Not provided'}
+      - Biological Sex: ${healthInfo.sex || 'Not provided'}
+      - Known Conditions: ${healthInfo.conditions || 'None'}
+
+      User's Answers to Your Follow-up Questions:
+      ${answersString}
+
+      Begin the final, refined Markdown analysis now, following the template exactly.
+    `;
+
+    let finalAnalysis;
+    try {
+      console.log(`Attempting FINAL analysis with primary model: ${PRO_MODEL_NAME}`);
+      finalAnalysis = await callGenerativeModel(PRO_MODEL_NAME, finalPrompt);
+    } catch (primaryError) {
+      console.warn(`Primary model failed for final analysis. Falling back to secondary model.`);
+      finalAnalysis = await callGenerativeModel(FLASH_MODEL_NAME, finalPrompt);
+    }
+
+    res.json({ finalAnalysis: finalAnalysis });
+
+  } catch (error) {
+    console.error('Error during final analysis process:', error);
+    res.status(500).json({ error: 'Failed to generate final analysis.' });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

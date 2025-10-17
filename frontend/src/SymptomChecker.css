@@ -45,7 +45,7 @@ font-weight: 400;
 flex: 1;
 }
 
-/* ==================== FEATURE 1: SEARCH BAR ==================== */
+/* ==================== SEARCH BAR ==================== */
 .sc-search-container {
 position: relative;
 margin-bottom: 40px;
@@ -107,8 +107,7 @@ border-radius: 8px;
 border: 1px solid #f0f0f0;
 }
 
-/* ==================== END FEATURE 1 ==================== */
-
+/* ==================== FUNNEL ==================== */
 .sc-funnel {
 display: flex;
 flex-direction: column;
@@ -125,12 +124,8 @@ animation: slideUp 0.4s ease-out forwards;
 }
 
 @keyframes fadeIn {
-from {
-    opacity: 0;
-}
-to {
-    opacity: 1;
-}
+from { opacity: 0; }
+to { opacity: 1; }
 }
 
 @keyframes slideUp {
@@ -183,7 +178,7 @@ color: #fff;
 border-color: #0066ff;
 }
 
-/* ==================== FEATURE 2: TOOLTIP ==================== */
+/* ==================== TOOLTIP ==================== */
 .sc-tooltip {
 position: fixed;
 background: #2d2d2d;
@@ -224,8 +219,8 @@ to {
     transform: translate(-50%, -100%) translateY(0);
 }
 }
-/* ==================== END FEATURE 2 ==================== */
 
+/* ==================== TEXT INPUTS ==================== */
 .sc-textarea {
 width: 100%;
 min-height: 120px;
@@ -245,6 +240,7 @@ border-color: #0066ff;
 box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
 }
 
+/* ==================== BUTTONS ==================== */
 .sc-btn {
 padding: 14px 28px;
 border: none;
@@ -276,7 +272,6 @@ opacity: 0.4;
 cursor: not-allowed;
 }
 
-/* ==================== FEATURE 3: SECONDARY BUTTON (COPY) ==================== */
 .sc-btn-secondary {
 background: #f5f5f5;
 color: #333;
@@ -292,8 +287,8 @@ transform: translateY(-1px);
 .sc-btn-secondary:active {
 transform: translateY(0);
 }
-/* ==================== END FEATURE 3 ==================== */
 
+/* ==================== SYMPTOMS LIST ==================== */
 .sc-symptoms-list {
 margin-top: 60px;
 padding: 32px;
@@ -377,6 +372,7 @@ font-style: italic;
 width: 100%;
 }
 
+/* ==================== LOADING ==================== */
 .sc-loading {
 display: flex;
 flex-direction: column;
@@ -396,9 +392,7 @@ animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
-to {
-    transform: rotate(360deg);
-}
+to { transform: rotate(360deg); }
 }
 
 .sc-loading p {
@@ -406,6 +400,7 @@ font-size: 16px;
 color: #666;
 }
 
+/* ==================== RESULTS ==================== */
 .sc-results {
 display: flex;
 align-items: center;
@@ -419,7 +414,8 @@ background: #fff;
 padding: 48px;
 border-radius: 12px;
 border: 1px solid #f0f0f0;
-max-width: 600px;
+max-width: 800px;
+width: 100%;
 text-align: center;
 }
 
@@ -463,7 +459,7 @@ margin-bottom: 10px;
 
 .sc-results-text li::before {
 content: '•'; 
-color: #007aff; 
+color: #0066ff; 
 font-size: 20px;
 font-weight: bold;
 position: absolute;
@@ -499,7 +495,168 @@ border-radius: 8px;
 text-align: center;
 }
 
-/* ==================== FEATURE 3: RESULTS ACTIONS ==================== */
+/* ==================== FOLLOW-UP QUESTIONS ==================== */
+.sc-questions-section {
+margin-top: 48px;
+padding-top: 40px;
+border-top: 2px solid #f0f0f0;
+text-align: left;
+animation: slideUp 0.4s ease-out;
+}
+
+.sc-questions-title {
+font-size: 22px;
+font-weight: 700;
+color: #000;
+margin-bottom: 8px;
+}
+
+.sc-questions-subtitle {
+font-size: 14px;
+color: #666;
+margin-bottom: 32px;
+}
+
+.sc-questions-container {
+display: flex;
+flex-direction: column;
+gap: 24px;
+margin-bottom: 32px;
+}
+
+.sc-question-card {
+padding: 24px;
+background: #f9f9f9;
+border: 1px solid #f0f0f0;
+border-radius: 10px;
+transition: all 0.2s ease;
+}
+
+.sc-question-card:hover {
+background: #f5f5f5;
+border-color: #e5e5e5;
+}
+
+.sc-question-label {
+display: block;
+font-size: 15px;
+font-weight: 600;
+color: #000;
+margin-bottom: 16px;
+line-height: 1.4;
+}
+
+/* Yes/No Buttons */
+.sc-question-buttons {
+display: flex;
+gap: 12px;
+}
+
+.sc-question-buttons .sc-option-btn {
+flex: 1;
+text-align: center;
+justify-content: center;
+}
+
+/* Scale Slider */
+.sc-question-slider {
+display: flex;
+flex-direction: column;
+gap: 12px;
+}
+
+.sc-slider {
+width: 100%;
+height: 8px;
+border-radius: 4px;
+background: linear-gradient(to right, #e0e0e0 0%, #0066ff 100%);
+outline: none;
+cursor: pointer;
+appearance: none;
+}
+
+.sc-slider::-webkit-slider-thumb {
+appearance: none;
+width: 24px;
+height: 24px;
+border-radius: 50%;
+background: #0066ff;
+cursor: pointer;
+box-shadow: 0 2px 8px rgba(0, 102, 255, 0.3);
+transition: all 0.2s ease;
+}
+
+.sc-slider::-webkit-slider-thumb:hover {
+transform: scale(1.1);
+box-shadow: 0 4px 12px rgba(0, 102, 255, 0.4);
+}
+
+.sc-slider::-moz-range-thumb {
+width: 24px;
+height: 24px;
+border-radius: 50%;
+background: #0066ff;
+cursor: pointer;
+border: none;
+box-shadow: 0 2px 8px rgba(0, 102, 255, 0.3);
+transition: all 0.2s ease;
+}
+
+.sc-slider::-moz-range-thumb:hover {
+transform: scale(1.1);
+box-shadow: 0 4px 12px rgba(0, 102, 255, 0.4);
+}
+
+.sc-slider-value {
+text-align: center;
+font-size: 24px;
+font-weight: 700;
+color: #0066ff;
+padding: 8px;
+background: #f0f4ff;
+border-radius: 8px;
+}
+
+.sc-slider-labels {
+display: flex;
+justify-content: space-between;
+font-size: 13px;
+color: #666;
+font-weight: 500;
+}
+
+/* Text Area for Questions */
+.sc-question-textarea {
+width: 100%;
+min-height: 100px;
+padding: 14px;
+border: 1.5px solid #e0e0e0;
+border-radius: 8px;
+font-family: inherit;
+font-size: 14px;
+color: #000;
+resize: vertical;
+transition: all 0.2s ease;
+background: #fff;
+}
+
+.sc-question-textarea:focus {
+outline: none;
+border-color: #0066ff;
+box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+background: #fff;
+}
+
+.sc-question-textarea::placeholder {
+color: #999;
+}
+
+.sc-btn-submit-final {
+width: 100%;
+margin-top: 16px;
+}
+
+/* ==================== RESULTS ACTIONS ==================== */
 .sc-results-actions {
 display: flex;
 gap: 12px;
@@ -510,46 +667,168 @@ flex-wrap: wrap;
 .sc-results-actions .sc-btn {
 margin-top: 0;
 }
-/* ==================== END FEATURE 3 ==================== */
 
+/* ==================== HEALTH INFO ==================== */
+.sc-health-info {
+margin-top: 60px;
+padding: 32px;
+background: #fff;
+border-radius: 12px;
+border: 1px solid #f0f0f0;
+}
+
+.sc-health-info h3 {
+font-size: 18px;
+font-weight: 600;
+margin-bottom: 8px;
+color: #000;
+}
+
+.sc-health-info-subtitle {
+font-size: 14px;
+color: #666;
+margin-bottom: 24px;
+}
+
+.sc-health-form {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 20px;
+}
+
+.sc-form-field {
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+
+.sc-form-field.full-width {
+grid-column: 1 / -1;
+}
+
+.sc-form-label {
+font-size: 14px;
+font-weight: 500;
+color: #333;
+}
+
+.sc-form-input,
+.sc-form-select {
+padding: 12px 14px;
+border: 1.5px solid #e0e0e0;
+border-radius: 8px;
+font-family: inherit;
+font-size: 14px;
+color: #000;
+background: #fff;
+transition: all 0.2s ease;
+}
+
+.sc-form-input:focus,
+.sc-form-select:focus {
+outline: none;
+border-color: #0066ff;
+box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+}
+
+.sc-form-input::placeholder {
+color: #999;
+}
+
+.sc-form-select {
+cursor: pointer;
+appearance: none;
+background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+background-repeat: no-repeat;
+background-position: right 14px center;
+padding-right: 40px;
+}
+
+.sc-input-with-unit {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.sc-input-with-unit input {
+flex: 1;
+}
+
+.sc-unit-label {
+font-size: 13px;
+color: #666;
+font-weight: 500;
+white-space: nowrap;
+}
+
+.sc-form-input[type="number"]::-webkit-inner-spin-button,
+.sc-form-input[type="number"]::-webkit-outer-spin-button {
+-webkit-appearance: none;
+margin: 0;
+}
+
+.sc-form-input[type="number"] {
+-moz-appearance: textfield;
+appearance: textfield;
+}
+
+/* ==================== RESPONSIVE ==================== */
 @media (max-width: 600px) {
-    .sc-container {
-        padding: 20px 16px;
-    }
+.sc-container {
+    padding: 20px 16px;
+}
 
-    .sc-header h1 {
-        font-size: 32px;
-    }
+.sc-header h1 {
+    font-size: 32px;
+}
 
-    .sc-option-btn {
-        flex: 1;
-        min-width: calc(50% - 6px);
-    }
+.sc-option-btn {
+    flex: 1;
+    min-width: calc(50% - 6px);
+}
 
-    .sc-button-group {
-        gap: 8px;
-    }
+.sc-button-group {
+    gap: 8px;
+}
 
-    .sc-symptoms-list {
-        padding: 24px;
-    }
+.sc-symptoms-list {
+    padding: 24px;
+}
 
-    .sc-results-card {
-        padding: 24px;
-    }
+.sc-results-card {
+    padding: 24px;
+}
 
-    /* Adjust tooltip max-width for mobile */
-    .sc-tooltip {
-        max-width: 220px;
-        font-size: 12px;
-    }
+.sc-tooltip {
+    max-width: 220px;
+    font-size: 12px;
+}
 
-    /* Stack results actions vertically on mobile */
-    .sc-results-actions {
-        flex-direction: column;
-    }
+.sc-results-actions {
+    flex-direction: column;
+}
 
-    .sc-results-actions .sc-btn {
-        width: 100%;
-    }
+.sc-results-actions .sc-btn {
+    width: 100%;
+}
+
+.sc-health-form {
+    grid-template-columns: 1fr;
+}
+
+.sc-health-info {
+    padding: 24px;
+}
+
+.sc-questions-section {
+    padding-top: 32px;
+}
+
+.sc-question-card {
+    padding: 20px;
+}
+
+.sc-question-buttons {
+    flex-direction: column;
+}
 }
