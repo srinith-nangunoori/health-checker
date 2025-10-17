@@ -3,6 +3,9 @@ import ReactMarkdown from 'react-markdown';
 import symptomTree from './data.js'; 
 import './SymptomChecker.css';
 
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://synapse-health-api.onrender.com' 
+  : 'http://localhost:3001';
 
 // Tooltip Component
 function Tooltip({ text, visible, position }) {
@@ -163,7 +166,7 @@ export default function SymptomChecker() {
     setAnalysisStage('initial');
 
     try {
-      const response = await fetch('http://localhost:3001/api/analyze', {
+      const response = await fetch(`${API_BASE_URL}/api/analyze`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -193,7 +196,7 @@ export default function SymptomChecker() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3001/api/final-analysis', {
+      const response = await fetch(`${API_BASE_URL}/api/final-analysis`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
